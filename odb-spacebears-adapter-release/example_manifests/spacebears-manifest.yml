@@ -1,0 +1,110 @@
+---
+name: spacebears-broker
+
+instance_groups:
+- azs:
+  - z1
+  instances: 1
+  name: broker
+  networks:
+  - name: default
+  stemcell: trusty
+  vm_extensions: []
+  vm_type: t2.small
+  jobs:
+  - name: broker
+    release: ((odb_release_name))
+    properties:
+      shutdown_timeout_in_seconds: 10
+      startup_banner: true
+      username: broker
+      bosh:
+        url: ((bosh.url))
+        authentication:
+          uaa:
+            client_id: admin
+            client_secret: ((bosh.authentication.uaa.client_secret))
+        root_ca_cert: ((bosh.root_ca_cert))
+      cf:
+        url: ((cf.url))
+        authentication:
+          url: ((cf.authentication.url))
+          user_credentials:
+            password: ((cf.authentication.user_credentials.password))
+            username: admin
+        root_ca_cert: ((cf.root_ca_cert))
+      disable_ssl_cert_verification: true
+      password: ((broker_password))
+      port: 8080
+      service_catalog:
+        bindable: true
+        id: spacebears
+        plan_updatable: true
+        service_description: Spacebears
+        service_name: spacebears
+        tags:
+        - pivotal
+        plans:
+        - description: Spacebears Dedicated Instance
+          instance_groups:
+          - name: redis-server
+            instances: 1
+            azs:
+            - z1
+            networks:
+            - default
+            persistent_disk_type: 10GB
+            vm_type: t2.small
+          metadata:
+            bullets: []
+            display_name: Speacebears
+          name: speacebears-plan
+          plan_id: speacebears-plan-id
+      service_deployment:
+        releases:
+        - jobs:
+          - redis-server
+          name: ((service_release_name))
+          version: ((service_release_version))
+        stemcell:
+          os: ubuntu-trusty
+          version: 3468.21
+
+  - consumes:
+      nats:
+        deployment: cf
+        from: nats
+    name: route_registrar
+    properties:
+      route_registrar:
+        routes:
+        - name: spacebears-route-name
+          port: 8080
+          registration_interval: 20s
+          uris:
+          - ((broker_uri))
+    release: routing
+
+  - name: service-adapter
+    release: dummy-adapter
+
+releases:
+- name: ((odb_release_name))
+  version: ((odb_release_version))
+- name: dummy-adapter
+  version: latest
+- name: routing
+  version: 0.171.0
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: '3468.21'
+
+update:
+  canaries: 1
+  canary_watch_time: 3000-180000
+  max_in_flight: 4
+  update_watch_time: 3000-180000
+
+variables: []
