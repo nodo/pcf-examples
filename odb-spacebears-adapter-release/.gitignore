@@ -29,3 +29,5 @@
 /dev_releases/
 /.dev_builds/
 /.mvn/
+.final_builds/
+*class

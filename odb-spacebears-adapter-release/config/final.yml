@@ -1,1 +1,5 @@
 name: adapter
+blobstore:
+  provider: local
+  options:
+    blobstore_path: /tmp/adapter_blobs
