@@ -1,11 +1,7 @@
 set -e
 
-wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
-mv jq-linux64 jq
-chmod +x jq
-
-mkdir ${BOSH_INSTALL_TARGET}/bin
-mv jq ${BOSH_INSTALL_TARGET}/bin/jq
+cp java-json.jar ${BOSH_INSTALL_TARGET}/bin/
+cp adapter.jar ${BOSH_INSTALL_TARGET}/bin/
 cp code.sh ${BOSH_INSTALL_TARGET}/bin/service-adapter
 chmod +x ${BOSH_INSTALL_TARGET}/bin/service-adapter
 
